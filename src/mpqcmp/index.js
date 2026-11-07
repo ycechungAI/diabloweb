@@ -2,9 +2,15 @@ import React from 'react';
 import compress from './compress';
 
 export default class CompressMpq extends React.Component {
-  state = {};
+  constructor(props) {
+    super(props);
+    this.state = {};
+    this.parseFile = this.parseFile.bind(this);
+    this.onDone = this.onDone.bind(this);
+    this.onClose = this.onClose.bind(this);
+  }
 
-  parseFile = e => {
+  parseFile(e) {
     const files = e.target.files;
     if (files.length > 0) {
       this.start(files[0]);
@@ -14,7 +20,7 @@ export default class CompressMpq extends React.Component {
   onProgress(progress) {
     this.setState({progress});
   }
-  onDone = blob => {
+  onDone(blob) {
     //const blob = new Blob([result], {type: 'binary/octet-stream'});
     const url = URL.createObjectURL(blob);
     this.setState({url});
@@ -32,7 +38,7 @@ export default class CompressMpq extends React.Component {
     api.onError(message, stack);
   }
 
-  onClose = () => {
+  onClose() {
     if (this.state.url) {
       URL.revokeObjectURL(this.state.url);
     }
