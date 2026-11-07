@@ -7,8 +7,6 @@
     "@fortawesome/free-solid-svg-icons": "^5.10.1",
     "@fortawesome/react-fontawesome": "^0.1.4",
     "@svgr/webpack": "4.1.0",
-    "@typescript-eslint/eslint-plugin": "1.6.0",
-    "@typescript-eslint/parser": "1.6.0",
     "axios": "^0.21.1",
     "babel-eslint": "10.0.1",
     "babel-jest": "^24.8.0",
@@ -147,7 +145,8 @@
     "gh-pages": "^2.0.1",
     "sass": "^1.77.0",
     "sass-loader": "^10.5.2",
-    "worker-loader": "^2.0.0"
+    "worker-loader": "^2.0.0",
+    "typescript": "5.8.3"
   },
   "overrides": {
     "fsevents": "^2.3.3",
