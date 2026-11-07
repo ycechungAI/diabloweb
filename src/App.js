@@ -24,7 +24,7 @@ if (process.env.NODE_ENV === 'production') {
 
 function reportLink(e, retail) {
   const message = (e.message || "Unknown error") + (e.stack ? "\n" + e.stack : "");
-  const url = new URL("https://github.com/d07RiV/diabloweb/issues/new");
+  const url = new URL("https://github.com/ycechungAI/diabloweb/issues/new");
   url.searchParams.set("body",
 `**Description:**
 [Please describe what you were doing before the error occurred]
@@ -41,7 +41,7 @@ ${message.split("\n").map(line => "    " + line).join("\n")}
     ${navigator.userAgent}
 
 **Save file:**
-[Please attach the save file, if applicable. The error box should have a link to download the current save you were playing; alternatively, you can open dev console on the game page (F12) and type in ${"`DownloadSaves()`"}]
+[Please attach the save file, if applicable. The error box should have a link to download the current save you were playing; alternatively, you can open dev console on the game page (F12) and type in \`DownloadSaves()\`]
 `);
   return url.toString();
 }
@@ -96,21 +96,23 @@ try {
 const Link = ({children, ...props}) => <a target="_blank" rel="noopener noreferrer" {...props}>{children}</a>;
 
 class App extends React.Component {
-  files = new Map();
-  state = {started: false, loading: false, dropping: 0, has_spawn: false};
-  cursorPos = {x: 0, y: 0};
-
-  touchControls = false;
-  touchButtons = [null, null, null, null, null, null, null, null, null, null];
-  touchCtx = [null, null, null, null, null, null];
-  touchMods = [false, false, false, false, false, false];
-  touchBelt = [-1, -1, -1, -1, -1, -1];
-  maxKeyboard = 0;
-
-  fs = create_fs(true);
-
   constructor(props) {
     super(props);
+
+    this.files = new Map();
+    this.state = {started: false, loading: false, dropping: 0, has_spawn: false};
+    this.cursorPos = {x: 0, y: 0};
+
+    this.touchControls = false;
+    this.touchButtons = [null, null, null, null, null, null, null, null, null, null];
+    this.touchCtx = [null, null, null, null, null, null];
+    this.touchMods = [false, false, false, false, false, false];
+    this.touchBelt = [-1, -1, -1, -1, -1, -1];
+    this.maxKeyboard = 0;
+    this.touchButton = null;
+    this.touchCanvas = null;
+
+    this.fs = create_fs(true);
 
     this.setTouch0 = this.setTouch_.bind(this, 0);
     this.setTouch1 = this.setTouch_.bind(this, 1);
@@ -123,6 +125,27 @@ class App extends React.Component {
     this.setTouch7 = this.setTouch_.bind(this, 7);
     this.setTouch8 = this.setTouch_.bind(this, 8);
     this.setTouch9 = this.setTouch_.bind(this, 9);
+
+    this.onDrop = this.onDrop.bind(this);
+    this.onDragEnter = this.onDragEnter.bind(this);
+    this.onDragOver = this.onDragOver.bind(this);
+    this.onDragLeave = this.onDragLeave.bind(this);
+    this.showSaves = this.showSaves.bind(this);
+    this.onResize = this.onResize.bind(this);
+    this.onPointerLockChange = this.onPointerLockChange.bind(this);
+    this.onMouseMove = this.onMouseMove.bind(this);
+    this.onMouseDown = this.onMouseDown.bind(this);
+    this.onMouseUp = this.onMouseUp.bind(this);
+    this.onMenu = this.onMenu.bind(this);
+    this.onKeyUp = this.onKeyUp.bind(this);
+    this.onKeyboard = this.onKeyboard.bind(this);
+    this.onKeyboardBlur = this.onKeyboardBlur.bind(this);
+    this.onTouchStart = this.onTouchStart.bind(this);
+    this.onTouchMove = this.onTouchMove.bind(this);
+    this.onTouchEnd = this.onTouchEnd.bind(this);
+    this.setCanvas = this.setCanvas.bind(this);
+    this.setElement = this.setElement.bind(this);
+    this.setKeyboard = this.setKeyboard.bind(this);
   }
 
   componentDidMount() {
@@ -142,7 +165,7 @@ class App extends React.Component {
     });
   }
 
-  onDrop = e => {
+  onDrop(e) {
     const file = getDropFile(e);
     if (file) {
       e.preventDefault();
@@ -154,16 +177,16 @@ class App extends React.Component {
     }
     this.setState({dropping: 0});
   }
-  onDragEnter = e => {
+  onDragEnter(e) {
     e.preventDefault();
     this.setDropping(1);
   }
-  onDragOver = e => {
+  onDragOver(e) {
     if (isDropFile(e)) {
       e.preventDefault();
     }
   }
-  onDragLeave = e => {
+  onDragLeave(e) {
     this.setDropping(-1);
   }
   setDropping(inc) {
@@ -235,7 +258,7 @@ class App extends React.Component {
     this.saveName = name;
   }
 
-  showSaves = () => {
+  showSaves() {
     if (this.state.save_names === true) {
       this.updateSaves().then(() => this.setState({show_saves: !this.state.show_saves}));
     } else {
@@ -383,11 +406,11 @@ class App extends React.Component {
     return ((e.shiftKey || this.touchMods[TOUCH_SHIFT]) ? 1 : 0) + (e.ctrlKey ? 2 : 0) + (e.altKey ? 4 : 0) + (e.touches ? 8 : 0);
   }
 
-  onResize = () => {
+  onResize() {
     document.exitPointerLock();
   }
 
-  onPointerLockChange = () => {
+  onPointerLockChange() {
     if (window.screen && window.innerHeight === window.screen.height && !this.pointerLocked()) {
       // assume that the user pressed escape
       this.game("DApi_Key", 0, 0, 27);
@@ -395,14 +418,14 @@ class App extends React.Component {
     }
   }
 
-  onMouseMove = e => {
+  onMouseMove(e) {
     if (!this.canvas) return;
     const {x, y} = this.mousePos(e);
     this.game("DApi_Mouse", 0, 0, this.eventMods(e), x, y);
     e.preventDefault();
   }
 
-  onMouseDown = e => {
+  onMouseDown(e) {
     if (!this.canvas) return;
     if (e.target === this.keyboard) {
       return;
@@ -422,7 +445,7 @@ class App extends React.Component {
     e.preventDefault();
   }
 
-  onMouseUp = e => {
+  onMouseUp(e) {
     if (!this.canvas) return;
     if (e.target === this.keyboard) {
       //return;
@@ -434,7 +457,7 @@ class App extends React.Component {
     }
   }
 
-  onKeyDown = e => {
+  onKeyDown(e) {
     if (!this.canvas) return;
     this.game("DApi_Key", 0, this.eventMods(e), e.keyCode);
     if (!this.showKeyboard && (e.keyCode >= 32 && e.key.length === 1)) {
@@ -450,11 +473,11 @@ class App extends React.Component {
     }
   }
 
-  onMenu = e => {
+  onMenu(e) {
     e.preventDefault();
   }
 
-  onKeyUp = e => {
+  onKeyUp(e) {
     if (!this.canvas) return;
     this.game("DApi_Key", 1, this.eventMods(e), e.keyCode);
     this.clearKeySel();
@@ -487,29 +510,27 @@ class App extends React.Component {
       this.game("text", valid, flags);
     }
   }
-  onKeyboard = () => {
+  onKeyboard() {
     this.onKeyboardInner(0);
   }
-  onKeyboardBlur = () => {
+  onKeyboardBlur() {
     this.onKeyboardInner(1);
   }
 
-  parseFile = e => {
+  parseFile(e) {
     const files = e.target.files;
     if (files.length > 0) {
       this.start(files[0]);
     }
   }
 
-  parseSave = e => {
+  parseSave(e) {
     const files = e.target.files;
     if (files.length > 0) {
       this.start(files[0]);
     }
   }
 
-  touchButton = null;
-  touchCanvas = null;
 
   setTouchMod(index, value, use) {
     if (index < 3) {
@@ -610,7 +631,7 @@ class App extends React.Component {
     return this.touchCanvas != null;
   }
 
-  onTouchStart = e => {
+  onTouchStart(e) {
     if (!this.canvas) return;
     if (e.target === this.keyboard) {
       return;
@@ -626,7 +647,7 @@ class App extends React.Component {
       }
     }
   }
-  onTouchMove = e => {
+  onTouchMove(e) {
     if (!this.canvas) return;
     if (e.target === this.keyboard) {
       return;
@@ -637,7 +658,7 @@ class App extends React.Component {
       this.game("DApi_Mouse", 0, 0, this.eventMods(e), x, y);
     }
   }
-  onTouchEnd = e => {
+  onTouchEnd(e) {
     if (!this.canvas) return;
     if (e.target === this.keyboard) {
       //return;
@@ -660,9 +681,9 @@ class App extends React.Component {
     }
   }
 
-  setCanvas = e => this.canvas = e;
-  setElement = e => this.element = e;
-  setKeyboard = e => this.keyboard = e;
+  setCanvas(e) { this.canvas = e; }
+  setElement(e) { this.element = e; }
+  setKeyboard(e) { this.keyboard = e; }
   setTouch_(i, e) {
     this.touchButtons[i] = e;
   }
@@ -726,7 +747,7 @@ class App extends React.Component {
         <div className="start">
           <p>
             This is a web port of the original Diablo game, based on source code reconstructed by
-            GalaXyHaXz and devilution team. The project page with information and links can be found over here <Link href="https://github.com/d07RiV/diabloweb">https://github.com/d07RiV/diabloweb</Link>
+            GalaXyHaXz and devilution team. The project page with information and links can be found over here <Link href="https://github.com/ycechungAI/diabloweb">https://github.com/ycechungAI/diabloweb</Link>
           </p>
           <p>
             If you own the original game, you can drop the original DIABDAT.MPQ onto this page or click the button below to start playing.
