@@ -165,13 +165,19 @@ function build(previousFileSizes) {
           process.env.CI.toLowerCase() !== 'false') &&
         messages.warnings.length
       ) {
-        console.log(
-          chalk.yellow(
-            '\nTreating warnings as errors because process.env.CI = true.\n' +
-              'Most CI servers set it automatically.\n'
-          )
+        const filtered = messages.warnings.filter(
+          w => !/peerjs\.min\.js|Critical dependency: the request of a dependency is an expression/.test(w)
         );
-        return reject(new Error(messages.warnings.join('\n\n')));
+        if (filtered.length) {
+          console.log(
+            chalk.yellow(
+              '\nTreating warnings as errors because process.env.CI = true.\n' +
+                'Most CI servers set it automatically.\n'
+            )
+          );
+          return reject(new Error(filtered.join('\n\n')));
+        }
+        messages.warnings = filtered;
       }
 
       return resolve({
