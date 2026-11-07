@@ -157,9 +157,9 @@ class webrtc_server {
 }
 
 class webrtc_client {
-  pending = [];
 
   constructor(version, {cookie, name, password}, onMessage, onClose) {
+    this.pending = [];
     this.peer = new Peer(Options);
     this.conn = this.peer.connect(PeerID(name));
 
