@@ -3,9 +3,6 @@ const W = new Uint32Array(80);
 const SHA1CircularShift = (shift, value) => ((value << shift) | (value >> (32 - shift)));
 
 class SHA1 {
-  digest = new Uint32Array(5);
-  count = 0;
-
   input8(u8) {
     const u32 = new Uint32Array(u8.buffer, u8.byteOffset, 16);
     this.input(u32);
@@ -68,6 +65,8 @@ class SHA1 {
   }
 
   constructor() {
+    this.digest = new Uint32Array(5);
+    this.count = 0;
 	  this.digest[0] = 0x67452301;
 	  this.digest[1] = 0xEFCDAB89;
 	  this.digest[2] = 0x98BADCFE;
